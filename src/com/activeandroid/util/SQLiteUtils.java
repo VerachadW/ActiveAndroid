@@ -162,6 +162,10 @@ public final class SQLiteUtils {
 				definition.append(" PRIMARY KEY ");
 			}
 
+            if (column.isAutoIncrement()){
+                definition.append(" AUTOINCREMENT ");
+            }
+
 			if (column.notNull()) {
 				definition.append(" NOT NULL ON CONFLICT ");
 				definition.append(column.onNullConflict().toString());
