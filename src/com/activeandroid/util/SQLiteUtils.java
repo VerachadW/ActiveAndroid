@@ -158,8 +158,8 @@ public final class SQLiteUtils {
 				definition.append(")");
 			}
 
-			if (name.equals("Id")) {
-				definition.append(" PRIMARY KEY AUTOINCREMENT");
+			if (name.equals("_id")) {
+				definition.append(" PRIMARY KEY ");
 			}
 
 			if (column.notNull()) {
@@ -175,7 +175,7 @@ public final class SQLiteUtils {
 			if (FOREIGN_KEYS_SUPPORTED && ReflectionUtils.isModel(type)) {
 				definition.append(" REFERENCES ");
 				definition.append(Cache.getTableInfo((Class<? extends Model>) type).getTableName());
-				definition.append("(Id)");
+				definition.append("(_id)");
 				definition.append(" ON DELETE ");
 				definition.append(column.onDelete().toString().replace("_", " "));
 				definition.append(" ON UPDATE ");
@@ -198,7 +198,7 @@ public final class SQLiteUtils {
 
 			if (cursor.moveToFirst()) {
 				do {
-					Model entity = Cache.getEntity(type, cursor.getLong(cursor.getColumnIndex("Id")));
+					Model entity = Cache.getEntity(type, cursor.getLong(cursor.getColumnIndex("_id")));
 					if (entity == null) {
 						entity = (T) entityConstructor.newInstance();
 					}
