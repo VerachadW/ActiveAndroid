@@ -38,6 +38,8 @@ public @interface Column {
 
 	public boolean notNull() default false;
 
+    public boolean isAutoIncrement() default false;
+
 	public ConflictAction onNullConflict() default ConflictAction.FAIL;
 
 	public ForeignKeyAction onDelete() default ForeignKeyAction.NO_ACTION;

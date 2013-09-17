@@ -18,6 +18,7 @@ package com.activeandroid;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.activeandroid.annotation.Column;
@@ -37,7 +38,7 @@ public abstract class Model {
 	// PRIVATE MEMBERS
 	//////////////////////////////////////////////////////////////////////////////////////
 
-	@Column(name = "Id")
+	@Column(name = "_id")
 	private Long mId = null;
 
 	private TableInfo mTableInfo;
@@ -55,11 +56,19 @@ public abstract class Model {
 	//////////////////////////////////////////////////////////////////////////////////////
 
 	public final Long getId() {
-		return mId;
+        if(mId == null)
+            return 0L;
+        else
+            return mId;
 	}
 
+    public final void setId(Long id) {
+        if(mId == null)
+            this.mId = id;
+    }
+
 	public final void delete() {
-		Cache.openDatabase().delete(mTableInfo.getTableName(), "Id=?", new String[] { getId().toString() });
+		Cache.openDatabase().delete(mTableInfo.getTableName(), "_id=?", new String[] { getId().toString() });
 		Cache.removeEntity(this);
 
 		Cache.getContext().getContentResolver()
@@ -146,12 +155,15 @@ public abstract class Model {
 			}
 		}
 
-		if (mId == null) {
-			mId = db.insert(mTableInfo.getTableName(), null, values);
-		}
-		else {
-			db.update(mTableInfo.getTableName(), values, "Id=" + mId, null);
-		}
+        try {
+            if(mId == null)
+                mId = db.insert(mTableInfo.getTableName(), null, values);
+            else
+                db.insertOrThrow(mTableInfo.getTableName(), null, values);
+        }
+        catch(SQLiteConstraintException e) {
+            db.update(mTableInfo.getTableName(), values, "_id="+mId, null);
+        }
 
 		Cache.getContext().getContentResolver()
 				.notifyChange(ContentProvider.createUri(mTableInfo.getType(), mId), null);
@@ -160,11 +172,11 @@ public abstract class Model {
 	// Convenience methods
 
 	public static void delete(Class<? extends Model> type, long id) {
-		new Delete().from(type).where("Id=?", id).execute();
+		new Delete().from(type).where("_id=?", id).execute();
 	}
 
 	public static <T extends Model> T load(Class<T> type, long id) {
-		return new Select().from(type).where("Id=?", id).executeSingle();
+		return new Select().from(type).where("_id=?", id).executeSingle();
 	}
 
 	// Model population
@@ -231,7 +243,7 @@ public abstract class Model {
 
 					Model entity = Cache.getEntity(entityType, entityId);
 					if (entity == null) {
-						entity = new Select().from(entityType).where("Id=?", entityId).executeSingle();
+						entity = new Select().from(entityType).where("_id=?", entityId).executeSingle();
 					}
 
 					value = entity;
