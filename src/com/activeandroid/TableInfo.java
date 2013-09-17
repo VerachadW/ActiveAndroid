@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.activeandroid.annotation.Column;
+import com.activeandroid.annotation.IgnoreAutoSave;
 import com.activeandroid.annotation.Table;
 import com.activeandroid.util.Log;
 
@@ -83,6 +84,10 @@ public final class TableInfo {
 	public String getColumnName(Field field) {
 		return mColumnNames.get(field);
 	}
+
+    public boolean isRestrictForManualUpdate(Field field){
+        return field.isAnnotationPresent(IgnoreAutoSave.class);
+    }
 
 	//////////////////////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS

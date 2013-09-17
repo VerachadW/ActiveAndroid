@@ -80,6 +80,9 @@ public abstract class Model {
 		final ContentValues values = new ContentValues();
 
 		for (Field field : mTableInfo.getFields()) {
+
+            if (mTableInfo.isRestrictForManualUpdate(field)) continue;
+
 			final String fieldName = mTableInfo.getColumnName(field);
 			Class<?> fieldType = field.getType();
 
