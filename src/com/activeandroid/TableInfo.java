@@ -96,7 +96,7 @@ public final class TableInfo {
 	private Field getIdField(Class<?> type) {
 		if (type.equals(Model.class)) {
 			try {
-				return type.getDeclaredField("_id");
+				return type.getDeclaredField("mId");
 			}
 			catch (NoSuchFieldException e) {
 				Log.e("Impossible!", e);

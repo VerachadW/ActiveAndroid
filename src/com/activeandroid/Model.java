@@ -38,7 +38,7 @@ public abstract class Model {
 	// PRIVATE MEMBERS
 	//////////////////////////////////////////////////////////////////////////////////////
 
-	@Column(name = "_id")
+	@Column(name = "id")
 	private Long mId = null;
 
 	private TableInfo mTableInfo;
@@ -68,14 +68,14 @@ public abstract class Model {
     }
 
 	public final void delete() {
-		Cache.openDatabase().delete(mTableInfo.getTableName(), "_id=?", new String[] { getId().toString() });
+		Cache.openDatabase().delete(mTableInfo.getTableName(), "id=?", new String[] { getId().toString() });
 		Cache.removeEntity(this);
 
 		Cache.getContext().getContentResolver()
 				.notifyChange(ContentProvider.createUri(mTableInfo.getType(), mId), null);
 	}
 
-	public final void save() {
+	public void save() {
 		final SQLiteDatabase db = Cache.openDatabase();
 		final ContentValues values = new ContentValues();
 
@@ -165,7 +165,7 @@ public abstract class Model {
                 db.insertOrThrow(mTableInfo.getTableName(), null, values);
         }
         catch(SQLiteConstraintException e) {
-            db.update(mTableInfo.getTableName(), values, "_id="+mId, null);
+            db.update(mTableInfo.getTableName(), values, "id="+mId, null);
         }
 
 		Cache.getContext().getContentResolver()
@@ -175,11 +175,11 @@ public abstract class Model {
 	// Convenience methods
 
 	public static void delete(Class<? extends Model> type, long id) {
-		new Delete().from(type).where("_id=?", id).execute();
+		new Delete().from(type).where("id=?", id).execute();
 	}
 
 	public static <T extends Model> T load(Class<T> type, long id) {
-		return new Select().from(type).where("_id=?", id).executeSingle();
+		return new Select().from(type).where("id=?", id).executeSingle();
 	}
 
 	// Model population
@@ -246,7 +246,7 @@ public abstract class Model {
 
 					Model entity = Cache.getEntity(entityType, entityId);
 					if (entity == null) {
-						entity = new Select().from(entityType).where("_id=?", entityId).executeSingle();
+						entity = new Select().from(entityType).where("id=?", entityId).executeSingle();
 					}
 
 					value = entity;

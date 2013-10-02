@@ -45,7 +45,8 @@ public final class SQLiteUtils {
 	// PUBLIC CONSTANTS
 	//////////////////////////////////////////////////////////////////////////////////////
 
-	public static final boolean FOREIGN_KEYS_SUPPORTED = Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO;
+//	public static final boolean FOREIGN_KEYS_SUPPORTED = Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO;
+    public static final boolean FOREIGN_KEYS_SUPPORTED = false;
 
 	//////////////////////////////////////////////////////////////////////////////////////
 	// PRIVATE CONTSANTS
@@ -158,7 +159,7 @@ public final class SQLiteUtils {
 				definition.append(")");
 			}
 
-			if (name.equals("_id")) {
+			if (name.equals("id")) {
 				definition.append(" PRIMARY KEY ");
 			}
 
@@ -179,7 +180,7 @@ public final class SQLiteUtils {
 			if (FOREIGN_KEYS_SUPPORTED && ReflectionUtils.isModel(type)) {
 				definition.append(" REFERENCES ");
 				definition.append(Cache.getTableInfo((Class<? extends Model>) type).getTableName());
-				definition.append("(_id)");
+				definition.append("(id)");
 				definition.append(" ON DELETE ");
 				definition.append(column.onDelete().toString().replace("_", " "));
 				definition.append(" ON UPDATE ");
@@ -202,7 +203,7 @@ public final class SQLiteUtils {
 
 			if (cursor.moveToFirst()) {
 				do {
-					Model entity = Cache.getEntity(type, cursor.getLong(cursor.getColumnIndex("_id")));
+					Model entity = Cache.getEntity(type, cursor.getLong(cursor.getColumnIndex("id")));
 					if (entity == null) {
 						entity = (T) entityConstructor.newInstance();
 					}
