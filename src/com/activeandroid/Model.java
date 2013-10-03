@@ -41,7 +41,7 @@ public abstract class Model {
 	@Column(name = "id")
 	private Long mId = null;
 
-	private TableInfo mTableInfo;
+	private static TableInfo mTableInfo;
 
 	//////////////////////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
@@ -62,13 +62,12 @@ public abstract class Model {
             return mId;
 	}
 
-    public final void setId(Long id) {
-        if(mId == null)
-            this.mId = id;
+    private final void setId(Long id) {
+        this.mId = id;
     }
 
 	public final void delete() {
-		Cache.openDatabase().delete(mTableInfo.getTableName(), "id=?", new String[] { getId().toString() });
+		Cache.openDatabase().delete(mTableInfo.getTableName(), mTableInfo.getPrimarykey().getName()+"=?", new String[] { getId().toString() });
 		Cache.removeEntity(this);
 
 		Cache.getContext().getContentResolver()
@@ -76,20 +75,26 @@ public abstract class Model {
 	}
 
 	public void save() {
+
 		final SQLiteDatabase db = Cache.openDatabase();
 		final ContentValues values = new ContentValues();
 
-		for (Field field : mTableInfo.getFields()) {
+        TableInfo tableInfo = Cache.getTableInfo(getClass());
 
-            if (mTableInfo.isRestrictForManualUpdate(field)) continue;
+        Field primaryField = tableInfo.getPrimarykey();
 
-			final String fieldName = mTableInfo.getColumnName(field);
+		for (Field field : tableInfo.getFields()) {
+
+            if (tableInfo.isRestrictForManualUpdate(field)) continue;
+
+			final String fieldName = tableInfo.getColumnName(field);
 			Class<?> fieldType = field.getType();
 
 			field.setAccessible(true);
 
 			try {
 				Object value = field.get(this);
+
 
 				if (value != null) {
 					final TypeSerializer typeSerializer = Cache.getParserForType(fieldType);
@@ -124,6 +129,9 @@ public abstract class Model {
 				}
 				else if (fieldType.equals(Long.class) || fieldType.equals(long.class)) {
 					values.put(fieldName, (Long) value);
+                    if (primaryField.getType().equals(fieldType) && primaryField.getName().equals(fieldName)){
+                        setId((Long) value);
+                    }
 				}
 				else if (fieldType.equals(Float.class) || fieldType.equals(float.class)) {
 					values.put(fieldName, (Float) value);
@@ -144,6 +152,7 @@ public abstract class Model {
 					values.put(fieldName, (byte[]) value);
 				}
 				else if (ReflectionUtils.isModel(fieldType)) {
+                    if (((Model) value).getId() == 0L) ((Model) value).save();
 					values.put(fieldName, ((Model) value).getId());
 				}
 				else if (ReflectionUtils.isSubclassOf(fieldType, Enum.class)) {
@@ -160,26 +169,26 @@ public abstract class Model {
 
         try {
             if(mId == null)
-                mId = db.insert(mTableInfo.getTableName(), null, values);
+                mId = db.insert(tableInfo.getTableName(), null, values);
             else
-                db.insertOrThrow(mTableInfo.getTableName(), null, values);
+                db.insertOrThrow(tableInfo.getTableName(), null, values);
         }
         catch(SQLiteConstraintException e) {
-            db.update(mTableInfo.getTableName(), values, "id="+mId, null);
+            db.update(tableInfo.getTableName(), values, tableInfo.getPrimarykey().getName()+"="+mId, null);
         }
 
 		Cache.getContext().getContentResolver()
-				.notifyChange(ContentProvider.createUri(mTableInfo.getType(), mId), null);
+				.notifyChange(ContentProvider.createUri(tableInfo.getType(), mId), null);
 	}
 
 	// Convenience methods
 
 	public static void delete(Class<? extends Model> type, long id) {
-		new Delete().from(type).where("id=?", id).execute();
+		new Delete().from(type).where(TableInfo.getIdColumnName(type)+"=?", id).execute();
 	}
 
 	public static <T extends Model> T load(Class<T> type, long id) {
-		return new Select().from(type).where("id=?", id).executeSingle();
+		return new Select().from(type).where(TableInfo.getIdColumnName(type)+"=?", id).executeSingle();
 	}
 
 	// Model population
@@ -194,12 +203,16 @@ public abstract class Model {
 				continue;
 			}
 
+
+
 			field.setAccessible(true);
 
 			try {
 				boolean columnIsNull = cursor.isNull(columnIndex);
 				TypeSerializer typeSerializer = Cache.getParserForType(fieldType);
 				Object value = null;
+
+
 
 				if (typeSerializer != null) {
 					fieldType = typeSerializer.getSerializedType();
@@ -221,6 +234,9 @@ public abstract class Model {
 				}
 				else if (fieldType.equals(Long.class) || fieldType.equals(long.class)) {
 					value = cursor.getLong(columnIndex);
+                    if (mTableInfo.getPrimarykey().getName().equals(field.getName())){
+                        mId = (Long)value;
+                    }
 				}
 				else if (fieldType.equals(Float.class) || fieldType.equals(float.class)) {
 					value = cursor.getFloat(columnIndex);
@@ -246,7 +262,7 @@ public abstract class Model {
 
 					Model entity = Cache.getEntity(entityType, entityId);
 					if (entity == null) {
-						entity = new Select().from(entityType).where("id=?", entityId).executeSingle();
+						entity = new Select().from(entityType).where(TableInfo.getIdColumnName(entityType)+"=?", entityId).executeSingle();
 					}
 
 					value = entity;
@@ -267,13 +283,7 @@ public abstract class Model {
 					field.set(this, value);
 				}
 			}
-			catch (IllegalArgumentException e) {
-				Log.e(e.getClass().getName(), e);
-			}
-			catch (IllegalAccessException e) {
-				Log.e(e.getClass().getName(), e);
-			}
-			catch (SecurityException e) {
+			catch (Exception e) {
 				Log.e(e.getClass().getName(), e);
 			}
 		}

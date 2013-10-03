@@ -36,6 +36,7 @@ public final class TableInfo {
 
 	private Class<? extends Model> mType;
 	private String mTableName;
+    private Field mPrimarykey;
 
 	private Map<Field, String> mColumnNames = new HashMap<Field, String>();
 
@@ -55,7 +56,8 @@ public final class TableInfo {
 		}
 
 		List<Field> fields = new ArrayList<Field>(Arrays.asList(type.getDeclaredFields()));
-		fields.add(getIdField(type));
+        mPrimarykey = getIdField(type);
+		fields.add(mPrimarykey);
 
 		for (Field field : fields) {
 			if (field.isAnnotationPresent(Column.class)) {
@@ -89,11 +91,26 @@ public final class TableInfo {
         return field.isAnnotationPresent(IgnoreAutoSave.class);
     }
 
+    public Field getPrimarykey(){
+        return mPrimarykey;
+    }
+
 	//////////////////////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
 	//////////////////////////////////////////////////////////////////////////////////////
 
-	private Field getIdField(Class<?> type) {
+    public static String getIdColumnName(Class<?> type){
+        Field field = getIdField(type);
+
+        if (field.isAnnotationPresent(Column.class)) {
+            final Column columnAnnotation = field.getAnnotation(Column.class);
+            return columnAnnotation.name();
+        }
+        return null;
+    }
+
+	private static Field getIdField(Class<?> type) {
+
 		if (type.equals(Model.class)) {
 			try {
 				return type.getDeclaredField("mId");
@@ -103,6 +120,15 @@ public final class TableInfo {
 			}
 		}
 		else if (type.getSuperclass() != null) {
+
+            List<Field> fields = new ArrayList<Field>(Arrays.asList(type.getDeclaredFields()));
+            for (Field field : fields) {
+                if (field.isAnnotationPresent(Column.class)) {
+                    Column columnAnnotation = field.getAnnotation(Column.class);
+                    if (columnAnnotation.isPrimary())   return field;
+                }
+            }
+
 			return getIdField(type.getSuperclass());
 		}
 

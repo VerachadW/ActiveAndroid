@@ -16,6 +16,7 @@ package com.activeandroid.annotation;
  * limitations under the License.
  */
 
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -37,6 +38,8 @@ public @interface Column {
 	public int length() default -1;
 
 	public boolean notNull() default false;
+
+    public boolean isPrimary() default false;
 
     public boolean isAutoIncrement() default false;
 

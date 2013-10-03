@@ -90,7 +90,13 @@ public final class SQLiteUtils {
 	}
 
 	public static <T extends Model> List<T> rawQuery(Class<? extends Model> type, String sql, String[] selectionArgs) {
-		Cursor cursor = Cache.openDatabase().rawQuery(sql, selectionArgs);
+        Cursor cursor = null;
+        try{
+            cursor = Cache.openDatabase().rawQuery(sql, selectionArgs);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
 		List<T> entities = processCursor(type, cursor);
 		cursor.close();
 
@@ -159,7 +165,7 @@ public final class SQLiteUtils {
 				definition.append(")");
 			}
 
-			if (name.equals("id")) {
+			if (name.equals(tableInfo.getPrimarykey().getName())) {
 				definition.append(" PRIMARY KEY ");
 			}
 
@@ -203,7 +209,8 @@ public final class SQLiteUtils {
 
 			if (cursor.moveToFirst()) {
 				do {
-					Model entity = Cache.getEntity(type, cursor.getLong(cursor.getColumnIndex("id")));
+                    String col = TableInfo.getIdColumnName(type);
+					Model entity = Cache.getEntity(type, cursor.getLong(cursor.getColumnIndex(col)));
 					if (entity == null) {
 						entity = (T) entityConstructor.newInstance();
 					}
@@ -217,6 +224,7 @@ public final class SQLiteUtils {
 		}
 		catch (Exception e) {
 			Log.e("Failed to process cursor.", e);
+            e.printStackTrace();
 		}
 
 		return entities;
