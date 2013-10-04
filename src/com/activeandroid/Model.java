@@ -194,8 +194,9 @@ public abstract class Model {
 	// Model population
 
 	public final void loadFromCursor(Cursor cursor) {
-		for (Field field : mTableInfo.getFields()) {
-			final String fieldName = mTableInfo.getColumnName(field);
+        TableInfo tableInfo = Cache.getTableInfo(getClass());
+        for (Field field : tableInfo.getFields()) {
+			final String fieldName = tableInfo.getColumnName(field);
 			Class<?> fieldType = field.getType();
 			final int columnIndex = cursor.getColumnIndex(fieldName);
 
@@ -234,7 +235,7 @@ public abstract class Model {
 				}
 				else if (fieldType.equals(Long.class) || fieldType.equals(long.class)) {
 					value = cursor.getLong(columnIndex);
-                    if (mTableInfo.getPrimarykey().getName().equals(field.getName())){
+                    if (tableInfo.getPrimarykey().getName().equals(field.getName())){
                         mId = (Long)value;
                     }
 				}
