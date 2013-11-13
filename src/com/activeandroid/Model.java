@@ -179,6 +179,10 @@ public abstract class Model {
 
 		Cache.getContext().getContentResolver()
 				.notifyChange(ContentProvider.createUri(tableInfo.getType(), mId), null);
+
+
+        // Mark old entity in cache invalid
+        Cache.removeEntity(this);
 	}
 
 	// Convenience methods
