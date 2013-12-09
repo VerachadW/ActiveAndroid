@@ -67,7 +67,7 @@ public abstract class Model {
     }
 
 	public final void delete() {
-		Cache.openDatabase().delete(mTableInfo.getTableName(), mTableInfo.getPrimarykey().getName()+"=?", new String[] { getId().toString() });
+		Cache.openDatabase().delete(mTableInfo.getTableName(), mTableInfo.getPrimaryKey().getName()+"=?", new String[] { getId().toString() });
 		Cache.removeEntity(this);
 
 		Cache.getContext().getContentResolver()
@@ -81,7 +81,7 @@ public abstract class Model {
 
         TableInfo tableInfo = Cache.getTableInfo(getClass());
 
-        Field primaryField = tableInfo.getPrimarykey();
+        Field primaryField = tableInfo.getPrimaryKey();
 
 		for (Field field : tableInfo.getFields()) {
 
@@ -174,7 +174,7 @@ public abstract class Model {
                 db.insertOrThrow(tableInfo.getTableName(), null, values);
         }
         catch(SQLiteConstraintException e) {
-            db.update(tableInfo.getTableName(), values, tableInfo.getPrimarykey().getName()+"="+mId, null);
+            db.update(tableInfo.getTableName(), values, tableInfo.getPrimaryKey().getName()+"="+mId, null);
         }
 
 		Cache.getContext().getContentResolver()
@@ -239,7 +239,7 @@ public abstract class Model {
 				}
 				else if (fieldType.equals(Long.class) || fieldType.equals(long.class)) {
 					value = cursor.getLong(columnIndex);
-                    if (tableInfo.getPrimarykey().getName().equals(field.getName())){
+                    if (tableInfo.getPrimaryKey().getName().equals(field.getName())){
                         mId = (Long)value;
                     }
 				}

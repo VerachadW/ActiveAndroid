@@ -17,7 +17,6 @@ package com.activeandroid.util;
  */
 
 import android.database.Cursor;
-import android.os.Build;
 import android.text.TextUtils;
 
 import com.activeandroid.Cache;
@@ -165,7 +164,7 @@ public final class SQLiteUtils {
 				definition.append(")");
 			}
 
-			if (name.equals(tableInfo.getPrimarykey().getName())) {
+			if (name.equals(tableInfo.getPrimaryKeyColumnName())) {
 				definition.append(" PRIMARY KEY ");
 			}
 

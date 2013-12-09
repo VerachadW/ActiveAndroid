@@ -16,6 +16,11 @@ package com.activeandroid;
  * limitations under the License.
  */
 
+import com.activeandroid.annotation.Column;
+import com.activeandroid.annotation.IgnoreAutoSave;
+import com.activeandroid.annotation.Table;
+import com.activeandroid.util.Log;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,11 +28,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.IgnoreAutoSave;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.util.Log;
 
 public final class TableInfo {
 	//////////////////////////////////////////////////////////////////////////////////////
@@ -91,8 +91,12 @@ public final class TableInfo {
         return field.isAnnotationPresent(IgnoreAutoSave.class);
     }
 
-    public Field getPrimarykey(){
+    public Field getPrimaryKey(){
         return mPrimarykey;
+    }
+
+    public String getPrimaryKeyColumnName() {
+        return mColumnNames.get(mPrimarykey);
     }
 
 	//////////////////////////////////////////////////////////////////////////////////////
