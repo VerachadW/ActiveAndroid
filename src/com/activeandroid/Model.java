@@ -175,7 +175,7 @@ public abstract class Model {
                 db.insertOrThrow(tableInfo.getTableName(), null, values);
         }
         catch(SQLiteConstraintException e) {
-            db.update(tableInfo.getTableName(), values, tableInfo.getPrimaryKey().getName()+"="+mId, null);
+            db.update(tableInfo.getTableName(), values, primaryColumnName+"="+mId, null);
         }
 
 		Cache.getContext().getContentResolver()

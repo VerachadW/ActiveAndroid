@@ -90,14 +90,15 @@ public final class SQLiteUtils {
 
 	public static <T extends Model> List<T> rawQuery(Class<? extends Model> type, String sql, String[] selectionArgs) {
         Cursor cursor = null;
+        ArrayList<T> entities = new ArrayList<T>();
         try{
             cursor = Cache.openDatabase().rawQuery(sql, selectionArgs);
+            List<T> data = processCursor(type, cursor);
+            entities.addAll(data);
+            cursor.close();
         } catch (Exception e){
             e.printStackTrace();
         }
-
-		List<T> entities = processCursor(type, cursor);
-		cursor.close();
 
 		return entities;
 	}
